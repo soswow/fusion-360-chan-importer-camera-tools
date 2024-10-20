@@ -116,33 +116,9 @@ def command_active(args: CommandEventArgs):
 
     get_component_selection_input(args.command.commandInputs).addSelection(occurrences.item(0))
 
-# TODO this doesn't execute because we did previuew well
 def command_execute(args: CommandEventArgs):
+    # Doesn't execute because we did previuew well
     pass
-    # log(f'Command Execute Event')
-
-    # inputs = args.command.commandInputs
-    
-    # slider_input: IntegerSliderCommandInput = inputs.itemById(SLIDER_INPUT_ID)
-    # slider_value = slider_input.valueOne
-    
-    # component_selection_input = get_component_selection_input(inputs)
-    # if component_selection_input.selectionCount > 0:
-    #     occurrence: Occurrence = component_selection_input.selection(0).entity
-    #     component = design.allComponents.itemById(occurrence.component.id)
-    #     camera_manipulation.attach_background_to_camera(slider_value, component, 10, 'front')
-    #     camera_manipulation.attach_background_to_camera(slider_value, component, 150, 'back')
-
-    #     store.set_reference_component_name(component.name)
-
-    # chan_filepath_input: TextBoxCommandInput = inputs.itemById(CHAN_FILEPATH_TEXT_ID)
-    # if chan_filepath_input.text:
-    #     store.set_chan_filepath(chan_filepath_input.text)
-
-    # image_directory_input: TextBoxCommandInput = inputs.itemById(IMAGES_DIRECTORY_TEXT_ID)
-    # if image_directory_input.text:
-    #     store.set_images_directory(image_directory_input.text)
-    
 
 def command_input_changed(args: InputChangedEventArgs):
     global active_command_ref_component_name
@@ -212,9 +188,9 @@ def command_preview(args: CommandEventArgs):
             if chan_path and images_directory:
                 camera_manipulation.change_camera(slider_input.valueOne, occurrence)
                 if canvas_placement == CANVAS_PLACEMENT_FRONT or canvas_placement == CANVAS_PLACEMENT_BOTH:
-                    camera_manipulation.attach_background_to_camera(slider_input.valueOne, component, camera_manipulation.CanvasPlacement.FRONT, 'front')
+                    camera_manipulation.attach_background_to_chan_camera(slider_input.valueOne, component, camera_manipulation.CanvasPlacement.FRONT, 'front')
                 if canvas_placement == CANVAS_PLACEMENT_BACK or canvas_placement == CANVAS_PLACEMENT_BOTH:
-                    camera_manipulation.attach_background_to_camera(slider_input.valueOne, component,  camera_manipulation.CanvasPlacement.BACK, 'back')
+                    camera_manipulation.attach_background_to_chan_camera(slider_input.valueOne, component,  camera_manipulation.CanvasPlacement.BACK, 'back')
             app.activeViewport.refresh()   
         else:
             ui.messageBox('It is best if you select subcomponent and not the root one')
@@ -298,7 +274,6 @@ def get_visible_ref_canvases():
             visibile_ref_canvases.append(canvas.name)
     visibile_ref_canvases.sort()
     return visibile_ref_canvases
-
 
 visibile_ref_canvases: List[str] = []
 

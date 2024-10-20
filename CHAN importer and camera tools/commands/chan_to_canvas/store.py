@@ -24,11 +24,6 @@ OPACITY_ATTRIBUTE_ID = 'opacity'
 
 attributes_local_copy = dict()
 def _get_attribute(name: str):
-    # global attributes_local_copy
-    # log(f'_get_attribute({name}) local_copy: {attributes_local_copy}')
-    # if name in attributes_local_copy:
-    #     log(f'found in local: {attributes_local_copy[name]}')
-    #     return attributes_local_copy[name]
     chan_filepath_attribute = product.attributes.itemByName(ATTR_GROUP_ID, name)
     if chan_filepath_attribute:
         return chan_filepath_attribute.value
@@ -37,11 +32,7 @@ def _get_attribute(name: str):
         return None
 
 def _set_attribute(name: str, value: str):
-    # global attributes_local_copy
-    # log(f'storing attribute {name} as {value}')
-    # attributes_local_copy[name] = value
     product.attributes.add(ATTR_GROUP_ID, name, value)
-
 
 def set_chan_filepath(chan_filepath: str):
     _set_attribute(CHAN_FILEPATH_ATTRIBUTE_ID, chan_filepath)

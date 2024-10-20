@@ -1,4 +1,4 @@
-import math
+import math, os
 from enum import Enum
 
 
@@ -18,6 +18,7 @@ geom_to_str = lambda x: functools.reduce(lambda a,b: f'{a}, {b}', [f'{r}: {s}' f
 app = Application.get()
 design = Design.cast(app.activeProduct)
 
+# Makes a sketch with some lines in place of a current camera. Not used but keeping just in case
 def vis_camera():
     rootComp = design.rootComponent
 
@@ -32,11 +33,6 @@ def vis_camera():
 
     # Draw a line from eye to target
     sketch.sketchCurves.sketchLines.addByTwoPoints(eye, target)
-
-    # Calculate the end point of the line in the direction of the upVector
-    # up_point = Point3D.create(eye.x + upVector.x * 2, 
-    #                             eye.y + upVector.y * 2, 
-    #                             eye.z + upVector.z * 2)
 
     # Assuming 'sketch' is your existing Sketch object
     # Create the first line from eye to target
@@ -116,8 +112,7 @@ def get_camera_by_frame(frameNumber: int, context_occurrence: Occurrence):
 
     up_vector = Vector3D.create(0, 1, 0)
     rotation_z_matrix = Matrix3D.create()
-    #TODO Fix that problem for some shots
-    # log(f'{frame.rotation_euler[2]} rad, {math.degrees(frame.rotation_euler[2])} deg')
+    
     log(f'frame #{frameNumber} pos: {frame.location.x} {frame.location.y} angle: {math.degrees(frame.rotation_euler[0])} {math.degrees(frame.rotation_euler[1])} {math.degrees(frame.rotation_euler[2])}')
     rotation_z_matrix.setToRotation(frame.rotation_euler[2], Vector3D.create(0, 0, 1), eye)
     up_vector.transformBy(rotation_z_matrix)
@@ -204,12 +199,22 @@ def mesh_bounding_box_corners():
 
     return corners
 
-
 class CanvasPlacement(Enum):
     FRONT = 1
     BACK = 2
 
-def attach_background_to_camera(frame_number: int, component: Component, placement: CanvasPlacement, postfix: str = "" ):
+def attach_background_to_camera(image_path: str, distance: int, opacity: int):
+    view = app.activeViewport
+    eye = view.camera.eye
+    target = view.camera.target
+    up_vector = view.camera.upVector
+
+    name = os.path.basename(image_path)
+
+    _attach_background(eye, target, up_vector, image_path, distance, opacity, name, design.rootComponent)
+
+
+def attach_background_to_chan_camera(frame_number: int, component: Component, placement: CanvasPlacement, postfix: str = "" ):
     context_occurrence = design.rootComponent.occurrencesByComponent(component).item(0)
     context_occurrence.activate()
     image_path = get_image_path(frame_number)
@@ -229,14 +234,34 @@ def attach_background_to_camera(frame_number: int, component: Component, placeme
     eye.transformBy(transform_matrix)
     up_vector.transformBy(transform_matrix)
 
-    fov = view.camera.perspectiveAngle
+    distance = 10 if placement == CanvasPlacement.FRONT else farthest_mesh_corner_from_camera_distance()
+    opacity = get_opacity()
+
+    name = f'ref-frame-{frame_number}'
+    if postfix:
+        name += f'-{postfix}'
+
+    _attach_background(eye, target, up_vector, image_path, distance, opacity, name, component)
+
+    # filename_with_ext = os.path.basename(image_path)
+    # filename_without_ext = os.path.splitext(filename_with_ext)[0]
+    # design.namedViews.add(app.activeViewport.camera, filename_without_ext)
+
+    # log(f'Canvas added to {component.name} where there are {component.canvases.count} of them already.')
+
+def _attach_background(eye: Point3D, target: Point3D, up_vector: Vector3D, image_path: str, distance: int, opacity: int, name: str, component: Component):
+    view = app.activeViewport
+    
+    if view.camera.cameraType == CameraTypes.PerspectiveCameraType or view.camera.cameraType == CameraTypes.PerspectiveWithOrthoFacesCameraType: 
+        fov = view.camera.perspectiveAngle
+        canvas_height = 2 * (distance * math.tan(fov/2))
+    else:
+        _, _, canvas_height  = view.camera.getExtents()
 
     up_vector.normalize()
 
     normal = Vector3D.create(target.x - eye.x, target.y - eye.y, target.z - eye.z)
     normal.normalize()
-
-    distance = 10 if placement == CanvasPlacement.FRONT else farthest_mesh_corner_from_camera_distance()
 
     new_target = Point3D.create(eye.x + normal.x * distance,
                                     eye.y + normal.y * distance,
@@ -250,14 +275,12 @@ def attach_background_to_camera(frame_number: int, component: Component, placeme
         rightVec,
         up_vector,
     )
-    
-    canvas_height = 2 * (distance * math.tan(fov/2))
 
     # imagePath = "/Users/sasha/Documents/test_image_7000x4200.png"
     canvas_input = component.canvases.createInput(image_path, plane)
     canvas_input.imageFilename = image_path
     canvas_input.isDisplayedThrough = True
-    canvas_input.opacity = get_opacity()
+    canvas_input.opacity = opacity
     
     current_transform_array = canvas_input.transform.asArray()
     initial_canvas_height = current_transform_array[4]
@@ -285,16 +308,8 @@ def attach_background_to_camera(frame_number: int, component: Component, placeme
     canvas_input.transform = new_transform
     
     canvas = component.canvases.add(canvas_input)
-    name = f'ref-frame-{frame_number}'
-    if postfix:
-        name += f'-{postfix}'
+    
     canvas.name = name
-
-    # filename_with_ext = os.path.basename(image_path)
-    # filename_without_ext = os.path.splitext(filename_with_ext)[0]
-    # design.namedViews.add(app.activeViewport.camera, filename_without_ext)
-
-    # log(f'Canvas added to {component.name} where there are {component.canvases.count} of them already.')
 
 def are_cameras_equal(cameraA: Camera, cameraB: Camera):
     return cameraA.eye.isEqualTo(cameraB.eye) and \

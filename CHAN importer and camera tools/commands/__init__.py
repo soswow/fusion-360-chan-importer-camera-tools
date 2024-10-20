@@ -1,7 +1,9 @@
-from .cameraSlider import entry as cameraSlider
+from .chan_to_canvas import entry as chan_to_canvas_entry
+from .sticky_canvas import entry as sticky_canvas_entry
 
 commands = [
-    cameraSlider
+    chan_to_canvas_entry,
+    sticky_canvas_entry
 ]
 
 

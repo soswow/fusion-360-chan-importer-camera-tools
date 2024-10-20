@@ -1,6 +1,5 @@
 import os
 from importlib import reload
-import asyncio
 
 from adsk.core import *
 from adsk.fusion import *
@@ -16,7 +15,7 @@ app = Application.get()
 ui = app.userInterface
 
 CMD_ID = f'{config.COMPANY_NAME}_{config.ADDIN_NAME}_cmdCameraSlider'
-CMD_NAME = 'Slide Reference Camera'
+CMD_NAME = 'CHAN camera -> Canvas Background'
 CMD_Description = ''
 
 WORKSPACE_ID = 'FusionSolidEnvironment'
@@ -69,6 +68,7 @@ def camera_changed(args: CameraEventArgs):
     command.camera_changed(args)
 
 def command_created(args: CommandCreatedEventArgs):
+    # TODO make this reloading only in DEBUG
     reload(command)
     reload(store)
     reload(chan)
