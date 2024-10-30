@@ -173,7 +173,6 @@ def command_preview(args: CommandEventArgs):
 
     canvas_placement_input: DropDownCommandInput = all_inputs.itemById(CANVAS_PLACEMENT_ID)
     canvas_placement = canvas_placement_input.selectedItem.name
-    log(f'canvas placement: {canvas_placement}')
 
     opacity_input: IntegerSliderCommandInput = all_inputs.itemById(OPACITY_INPUT_ID)
     opacity = opacity_input.valueOne
@@ -191,14 +190,12 @@ def command_preview(args: CommandEventArgs):
                     camera_manipulation.attach_background_to_chan_camera(slider_input.valueOne, component, camera_manipulation.CanvasPlacement.FRONT, 'front')
                 if canvas_placement == CANVAS_PLACEMENT_BACK or canvas_placement == CANVAS_PLACEMENT_BOTH:
                     camera_manipulation.attach_background_to_chan_camera(slider_input.valueOne, component,  camera_manipulation.CanvasPlacement.BACK, 'back')
-            app.activeViewport.refresh()   
+            app.activeViewport.refresh()
         else:
             ui.messageBox('It is best if you select subcomponent and not the root one')
             component_selection_input.clearSelection()
 
-    camera_manipulation.mesh_bounding_box_corners()
     args.isValidResult = True
-
 
 def browse_chan_file():
     # Create a file dialog to prompt the user to select a file

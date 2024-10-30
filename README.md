@@ -4,7 +4,7 @@ One way to use it is in conjuction with results of photogrammetry. You can expor
 
 ## Tutorial and demonstration
 
-TBD
+[![Demo for Sticky Reference Background command](https://img.youtube.com/vi/ycUOfv-cS6Q/0.jpg)](https://www.youtube.com/watch?v=ycUOfv-cS6Q)
 
 ## Installation
 

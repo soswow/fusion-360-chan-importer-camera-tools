@@ -12,7 +12,7 @@ from .store import get_chan_frames, get_image_path, get_opacity, get_reference_c
 
 # Add this lines at the beginning
 import functools
-geom_to_str = lambda x: functools.reduce(lambda a,b: f'{a}, {b}', [f'{r}: {s}' for r,s in zip("xyz", [f'{v*10:.4f} mm' for v in x.asArray()])])
+geom_to_str = lambda x: functools.reduce(lambda a,b: f'{a}, {b}', [f'{r}: {s}' for r,s in zip("xyz", [f'{v*10:.1f} mm' for v in x.asArray()])])
 
 
 app = Application.get()
@@ -116,7 +116,13 @@ def get_camera_by_frame(frameNumber: int, context_occurrence: Occurrence):
     log(f'frame #{frameNumber} pos: {frame.location.x} {frame.location.y} angle: {math.degrees(frame.rotation_euler[0])} {math.degrees(frame.rotation_euler[1])} {math.degrees(frame.rotation_euler[2])}')
     rotation_z_matrix.setToRotation(frame.rotation_euler[2], Vector3D.create(0, 0, 1), eye)
     up_vector.transformBy(rotation_z_matrix)
+    
+    # Some Magic numbers that shows you that I don't know what's happening.
+    # Without these two the up_vector flips from where it suppose to be,
+    # so this compensates it nicely
     if frame.rotation_euler[0] > math.radians(90):
+        up_vector.scaleBy(-1)
+    elif frame.rotation_euler[0] < math.radians(-90):
         up_vector.scaleBy(-1)
 
     target.transformBy(context_occurrence.transform2)
@@ -131,7 +137,6 @@ def get_camera_by_frame(frameNumber: int, context_occurrence: Occurrence):
     normal.normalize()
     new_up_vector = normal.crossProduct(right_vec)
     new_up_vector.normalize()
-
     
     cam = Camera.create()
     cam.cameraType = CameraTypes.PerspectiveCameraType
@@ -203,14 +208,14 @@ class CanvasPlacement(Enum):
     FRONT = 1
     BACK = 2
 
-def attach_background_to_camera(image_path: str, distance: int, opacity: int):
+def attach_background_to_camera(image_path: str, opacity: int):
     view = app.activeViewport
     eye = view.camera.eye
     target = view.camera.target
     up_vector = view.camera.upVector
 
     name = os.path.basename(image_path)
-
+    distance = eye.distanceTo(design.rootComponent.originConstructionPoint.geometry) + 500
     _attach_background(eye, target, up_vector, image_path, distance, opacity, name, design.rootComponent)
 
 
